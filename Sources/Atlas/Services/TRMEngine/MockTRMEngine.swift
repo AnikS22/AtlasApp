@@ -139,25 +139,41 @@ public enum MockTRMError: LocalizedError {
 
 @available(iOS 17.0, *)
 public enum TRMEngineFactory {
-    /// Create TRM engine - automatically uses mock if real models not available
+    /// Create TRM engine - automatically selects best available model
+    /// Priority: Phi-3.5 → Real TRM → Mock
     public static func createEngine() -> InferenceEngineProtocol {
-        // Try to create real engine
+        // Try Phi-3.5 first (best for testing and general use)
+        if let phi35 = try? Phi35Adapter() {
+            print("✅ Using Phi-3.5-mini for inference")
+            return phi35
+        }
+
+        // Try to create real TRM engine
         if let realEngine = try? TRMInferenceEngine() {
+            print("✅ Using TRM for inference")
             return realEngine
         }
-        
+
         // Fall back to mock
-        print("⚠️ TRM models not found, using mock engine")
+        print("⚠️ Models not found, using mock engine")
         return MockTRMEngine()
     }
-    
+
+    /// Force Phi-3.5 engine (for testing Phi-3.5 specifically)
+    public static func createPhi35Engine() throws -> InferenceEngineProtocol {
+        print("✅ Forcing Phi-3.5-mini engine")
+        return try Phi35Adapter()
+    }
+
     /// Force mock engine (for testing)
     public static func createMockEngine() -> InferenceEngineProtocol {
+        print("⚠️ Using mock engine (forced)")
         return MockTRMEngine()
     }
-    
-    /// Force real engine (will throw if models missing)
+
+    /// Force real TRM engine (will throw if models missing)
     public static func createRealEngine() throws -> InferenceEngineProtocol {
+        print("✅ Using real TRM engine (forced)")
         return try TRMInferenceEngine()
     }
 }

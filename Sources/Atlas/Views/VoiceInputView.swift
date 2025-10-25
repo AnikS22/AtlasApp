@@ -13,18 +13,22 @@ struct VoiceInputView: View {
     @EnvironmentObject private var appState: AppState
 
     @StateObject private var voiceRecorder = VoiceRecorder()
+    
+    // ✅ REAL VOICE TRANSCRIPTION
+    @StateObject private var viewModel = ChatViewModel()
 
     let onTranscriptionComplete: (String) -> Void
 
     @State private var isRecording = false
     @State private var recordingDuration: TimeInterval = 0
     @State private var timer: Timer?
+    @State private var isTranscribing = false
 
     var body: some View {
         NavigationView {
             VStack(spacing: 30) {
                 // Status Text
-                Text(isRecording ? "Recording..." : "Tap to record")
+                Text(isTranscribing ? "Transcribing..." : isRecording ? "Recording..." : "Tap to record")
                     .font(.title2)
                     .fontWeight(.semibold)
 
@@ -132,12 +136,24 @@ struct VoiceInputView: View {
         if let audioURL = voiceRecorder.stopRecording() {
             isRecording = false
             appState.isRecording = false
+            isTranscribing = true
 
-            // Simulate transcription (in production, this would call the Rust backend)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let transcription = "This is a simulated transcription of your voice input. The actual implementation will use the Whisper model in the Rust backend."
-                onTranscriptionComplete(transcription)
-                dismiss()
+            // ✅ REAL VOICE TRANSCRIPTION
+            Task {
+                if let transcription = await viewModel.transcribeAudio(audioURL) {
+                    isTranscribing = false
+                    onTranscriptionComplete(transcription)
+                    dismiss()
+                } else {
+                    isTranscribing = false
+                    // Show error
+                    if let error = viewModel.errorMessage {
+                        print("Transcription error: \(error)")
+                    }
+                    // Fall back to empty transcription
+                    onTranscriptionComplete("")
+                    dismiss()
+                }
             }
         }
     }
