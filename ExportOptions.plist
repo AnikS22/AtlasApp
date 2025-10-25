@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Export method: app-store, ad-hoc, enterprise, development -->
+	<key>method</key>
+	<string>app-store</string>
+
+	<!-- Team ID from Apple Developer account -->
+	<key>teamID</key>
+	<string>YOUR_TEAM_ID</string>
+
+	<!-- Upload symbols for crash reports -->
+	<key>uploadSymbols</key>
+	<true/>
+
+	<!-- Upload bitcode (deprecated in Xcode 14+) -->
+	<key>uploadBitcode</key>
+	<false/>
+
+	<!-- Compile bitcode (deprecated in Xcode 14+) -->
+	<key>compileBitcode</key>
+	<false/>
+
+	<!-- Strip Swift symbols -->
+	<key>stripSwiftSymbols</key>
+	<true/>
+
+	<!-- App thinning -->
+	<key>thinning</key>
+	<string>&lt;thin-for-all-variants&gt;</string>
+
+	<!-- Embed Swift standard libraries -->
+	<key>embedOnDemandResourcesAssetPacksInBundle</key>
+	<true/>
+
+	<!-- Provisioning profile mapping -->
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.atlasapp.atlas</key>
+		<string>PROVISIONING_PROFILE_NAME</string>
+	</dict>
+
+	<!-- Signing certificate -->
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
+
+	<!-- Signing style: manual or automatic -->
+	<key>signingStyle</key>
+	<string>manual</string>
+
+	<!-- Distribution bundle identifier -->
+	<key>distributionBundleIdentifier</key>
+	<string>com.atlasapp.atlas</string>
+
+	<!-- iCloud container environment -->
+	<key>iCloudContainerEnvironment</key>
+	<string>Production</string>
+
+	<!-- App Store destination -->
+	<key>destination</key>
+	<string>upload</string>
+
+	<!-- Generate app size report -->
+	<key>generateAppStoreInformation</key>
+	<true/>
+
+	<!-- Install mach-O universal binaries -->
+	<key>installerSigningCertificate</key>
+	<string>3rd Party Mac Developer Installer</string>
+
+	<!-- Manifest options for enterprise distribution -->
+	<key>manifest</key>
+	<dict>
+		<key>appURL</key>
+		<string>https://example.com/app.ipa</string>
+		<key>displayImageURL</key>
+		<string>https://example.com/icon57x57.png</string>
+		<key>fullSizeImageURL</key>
+		<string>https://example.com/icon512x512.png</string>
+	</dict>
+</dict>
+</plist>
