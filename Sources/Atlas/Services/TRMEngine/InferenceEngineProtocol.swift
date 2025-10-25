@@ -25,18 +25,18 @@ public protocol InferenceEngineProtocol: Sendable {
 /// Memory context for retrieval-augmented generation
 public struct MemoryContext: Sendable {
     public let embeddings: [Float]
-    public let relevantMessages: [Message]
+    public let relevantMessages: [InferenceMessage]
     public let similarity: Float
 
-    public init(embeddings: [Float], relevantMessages: [Message], similarity: Float) {
+    public init(embeddings: [Float], relevantMessages: [InferenceMessage], similarity: Float) {
         self.embeddings = embeddings
         self.relevantMessages = relevantMessages
         self.similarity = similarity
     }
 }
 
-/// Message structure for context
-public struct Message: Sendable, Identifiable {
+/// Message structure for TRM inference context
+public struct InferenceMessage: Sendable, Identifiable {
     public let id: UUID
     public let role: MessageRole
     public let content: String

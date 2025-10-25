@@ -16,13 +16,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        // OpenAI Swift SDK
-        .package(
-            url: "https://github.com/MacPaw/OpenAI.git",
-            from: "0.2.4"
-        ),
-
-        // Alamofire for networking
+        // Alamofire for networking (OAuth APIs: Gmail, Drive, Slack, etc.)
         .package(
             url: "https://github.com/Alamofire/Alamofire.git",
             from: "5.8.1"
@@ -32,6 +26,12 @@ let package = Package(
         .package(
             url: "https://github.com/kishikawakatsumi/KeychainAccess.git",
             from: "4.2.2"
+        ),
+
+        // SQLite for local encrypted database
+        .package(
+            url: "https://github.com/stephencelis/SQLite.swift.git",
+            from: "0.15.0"
         ),
 
         // SwiftyJSON for JSON parsing
@@ -82,37 +82,19 @@ let package = Package(
             from: "8.1.1"
         ),
 
-        // Socket.IO for real-time communication
-        .package(
-            url: "https://github.com/socketio/socket.io-client-swift.git",
-            from: "16.1.0"
-        ),
-
         // SwiftUIIntrospect for SwiftUI debugging
         .package(
             url: "https://github.com/siteline/SwiftUI-Introspect.git",
             from: "1.1.1"
-        ),
-
-        // Firebase for analytics and crash reporting
-        .package(
-            url: "https://github.com/firebase/firebase-ios-sdk.git",
-            from: "10.20.0"
-        ),
-
-        // Sentry for error tracking
-        .package(
-            url: "https://github.com/getsentry/sentry-cocoa.git",
-            from: "8.17.2"
         )
     ],
     targets: [
         .target(
             name: "Atlas",
             dependencies: [
-                .product(name: "OpenAI", package: "OpenAI"),
                 .product(name: "Alamofire", package: "Alamofire"),
                 .product(name: "KeychainAccess", package: "KeychainAccess"),
+                .product(name: "SQLite", package: "SQLite.swift"),
                 .product(name: "SwiftyJSON", package: "SwiftyJSON"),
                 .product(name: "RealmSwift", package: "realm-swift"),
                 .product(name: "SnapKit", package: "SnapKit"),
@@ -120,12 +102,7 @@ let package = Package(
                 .product(name: "Kingfisher", package: "Kingfisher"),
                 .product(name: "CombineSchedulers", package: "combine-schedulers"),
                 .product(name: "PromiseKit", package: "PromiseKit"),
-                .product(name: "SocketIO", package: "socket.io-client-swift"),
-                .product(name: "SwiftUIIntrospect", package: "SwiftUI-Introspect"),
-                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseMessaging", package: "firebase-ios-sdk"),
-                .product(name: "Sentry", package: "sentry-cocoa")
+                .product(name: "SwiftUIIntrospect", package: "SwiftUI-Introspect")
             ],
             path: "Sources/Atlas"
         ),
