@@ -14,9 +14,9 @@ final class FileAccessManager {
             let fm = FileManager.default
             switch self {
             case .database:
-                return try! fm.url(for: .applicationSupportDirectory, in: .userDomainMask, create: true)
+                return try! fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             case .mcpCache:
-                let appSupport = try! fm.url(for: .applicationSupportDirectory, in: .userDomainMask, create: true)
+                let appSupport = try! fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                 let cache = appSupport.appendingPathComponent("mcp_cache", isDirectory: true)
                 try? fm.createDirectory(at: cache, withIntermediateDirectories: true)
                 return cache

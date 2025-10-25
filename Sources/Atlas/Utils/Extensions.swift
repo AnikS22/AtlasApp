@@ -128,21 +128,28 @@ extension View {
         }
     }
 
+    #if os(iOS)
     /// Applies a rounded corner with specific corners
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
         clipShape(RoundedCorner(radius: radius, corners: corners))
     }
+    #endif
 
     /// Adds a card style
     func cardStyle(padding: CGFloat = 16, cornerRadius: CGFloat = 12) -> some View {
         self
             .padding(padding)
+            #if os(iOS)
             .background(Color(UIColor.secondarySystemBackground))
+            #else
+            .background(Color(NSColor.controlBackgroundColor))
+            #endif
             .cornerRadius(cornerRadius)
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
 }
 
+#if os(iOS)
 // MARK: - Rounded Corner Shape
 struct RoundedCorner: Shape {
     var radius: CGFloat = .infinity
@@ -157,6 +164,7 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
+#endif
 
 // MARK: - Array Extensions
 extension Array where Element: Identifiable {

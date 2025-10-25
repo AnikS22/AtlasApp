@@ -97,8 +97,8 @@ final class WebSocketMCPTransport: NSObject, MCPTransport, URLSessionWebSocketDe
         // Wait for response with timeout
         return try await withTimeout(seconds: 30) {
             try await withCheckedThrowingContinuation { continuation in
-                requestQueue.sync {
-                    pendingRequests[request.id] = continuation
+                self.requestQueue.sync {
+                    self.pendingRequests[request.id] = continuation
                 }
             }
         }
@@ -175,8 +175,8 @@ final class WebSocketMCPTransport: NSObject, MCPTransport, URLSessionWebSocketDe
     }
 
     deinit {
-        Task {
-            await disconnect()
+        Task { [weak self] in
+            await self?.disconnect()
         }
     }
 }
@@ -264,8 +264,8 @@ final class StdioMCPTransport: MCPTransport {
 
         return try await withTimeout(seconds: 30) {
             try await withCheckedThrowingContinuation { continuation in
-                requestQueue.sync {
-                    pendingRequests[request.id] = continuation
+                self.requestQueue.sync {
+                    self.pendingRequests[request.id] = continuation
                 }
             }
         }
@@ -316,8 +316,8 @@ final class StdioMCPTransport: MCPTransport {
     }
 
     deinit {
-        Task {
-            await disconnect()
+        Task { [weak self] in
+            await self?.disconnect()
         }
     }
 }

@@ -18,7 +18,7 @@ final class MemoryService: ObservableObject {
     // MARK: - Published Properties
 
     @Published private(set) var currentContext: ConversationContext?
-    @Published private(set) var memoryStats: MemoryStatistics
+    @Published private(set) var memoryStats: MemoryServiceStatistics
     @Published private(set) var isProcessing: Bool = false
 
     // MARK: - Dependencies
@@ -71,7 +71,7 @@ final class MemoryService: ObservableObject {
         self.recentQueries = LRUCache<String, [MemoryResult]>(capacity: 100)
 
         // Initialize stats
-        self.memoryStats = MemoryStatistics()
+        self.memoryStats = MemoryServiceStatistics()
 
         // Setup background optimization
         setupBackgroundOptimization()
@@ -496,7 +496,7 @@ struct MemoryConfiguration {
     )
 }
 
-struct MemoryStatistics {
+struct MemoryServiceStatistics {
     var totalEntries: Int = 0
     var averageStoreTime: TimeInterval = 0
     var averageRetrievalTime: TimeInterval = 0

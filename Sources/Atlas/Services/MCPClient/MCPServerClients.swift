@@ -4,7 +4,7 @@ import Foundation
 
 /// Specialized client for Gmail MCP server
 final class GmailMCPClient {
-    private let client: MCPClient
+    internal let client: MCPClient
 
     init() throws {
         let config = MCPServerConfig(
@@ -106,7 +106,7 @@ final class GmailMCPClient {
 
 /// Specialized client for Notion MCP server
 final class NotionMCPClient {
-    private let client: MCPClient
+    internal let client: MCPClient
 
     init(apiKey: String) throws {
         let config = MCPServerConfig(
@@ -208,7 +208,7 @@ final class NotionMCPClient {
 
 /// Specialized client for Google Drive MCP server
 final class GoogleDriveMCPClient {
-    private let client: MCPClient
+    internal let client: MCPClient
 
     init() throws {
         let config = MCPServerConfig(

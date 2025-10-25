@@ -9,6 +9,9 @@
 import Foundation
 import SQLite3
 
+// SQLite constants
+private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
 /// Local vector storage with SQLite backend
 /// Provides efficient vector similarity search with FTS5 integration
 final class VectorStore {

@@ -81,8 +81,16 @@ public final class TRMInferenceEngine: InferenceEngineProtocol {
         tokenProcessor: TokenProcessor? = nil
     ) throws {
         self.config = config
-        self.modelLoader = modelLoader ?? try ModelLoader(config: config)
-        self.tokenProcessor = tokenProcessor ?? try TokenProcessor()
+        if let loader = modelLoader {
+            self.modelLoader = loader
+        } else {
+            self.modelLoader = try ModelLoader(config: config)
+        }
+        if let processor = tokenProcessor {
+            self.tokenProcessor = processor
+        } else {
+            self.tokenProcessor = try TokenProcessor()
+        }
         self.memoryManager = TRMMemoryManager(poolSize: config.memoryPoolSize)
         self.performanceMonitor = PerformanceMonitor()
 

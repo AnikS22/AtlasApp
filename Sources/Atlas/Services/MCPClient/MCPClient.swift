@@ -26,6 +26,24 @@ protocol MCPClientProtocol {
     var config: MCPServerConfig { get }
 }
 
+// MARK: - Tool Cache Actor (Thread-Safe)
+
+private actor ToolCache {
+    private var tools: [MCPTool]?
+
+    func get() -> [MCPTool]? {
+        return tools
+    }
+
+    func set(_ newTools: [MCPTool]?) {
+        tools = newTools
+    }
+
+    func clear() {
+        tools = nil
+    }
+}
+
 // MARK: - MCP Client Implementation
 
 final class MCPClient: MCPClientProtocol {
@@ -36,8 +54,7 @@ final class MCPClient: MCPClientProtocol {
 
     let config: MCPServerConfig
 
-    private var cachedTools: [MCPTool]?
-    private let toolCacheLock = NSLock()
+    private let toolCache = ToolCache()
 
     var isConnected: Bool {
         transport.isConnected
@@ -93,21 +110,16 @@ final class MCPClient: MCPClientProtocol {
 
     func disconnect() async {
         await transport.disconnect()
-        toolCacheLock.lock()
-        cachedTools = nil
-        toolCacheLock.unlock()
+        await toolCache.clear()
     }
 
     // MARK: - Tool Operations
 
     func listTools() async throws -> [MCPTool] {
         // Check cache
-        toolCacheLock.lock()
-        if let cached = cachedTools {
-            toolCacheLock.unlock()
+        if let cached = await toolCache.get() {
             return cached
         }
-        toolCacheLock.unlock()
 
         // Request tools from server
         let response = try await sendRequest(method: "tools/list", params: nil)
@@ -134,9 +146,7 @@ final class MCPClient: MCPClientProtocol {
         }
 
         // Cache tools
-        toolCacheLock.lock()
-        cachedTools = tools
-        toolCacheLock.unlock()
+        await toolCache.set(tools)
 
         return tools
     }
@@ -217,9 +227,15 @@ final class MCPClient: MCPClientProtocol {
     }
 
     func sendRequest(method: String, params: [String: Any]?) async throws -> MCPResponse {
+        let anyCodableParams: AnyCodable? = if let params = params {
+            AnyCodable(params)
+        } else {
+            nil
+        }
+        
         let request = MCPRequest(
             method: method,
-            params: params?.toAnyCodable().mapValues { AnyCodable($0.value) }
+            params: anyCodableParams
         )
 
         return try await transport.send(request)
@@ -390,20 +406,16 @@ final class MCPAuditLogger {
 
 // MARK: - Connection Pool Manager
 
-/// Manages multiple MCP client connections
-final class MCPConnectionPool {
+/// Manages multiple MCP client connections using Actor for thread safety
+actor MCPConnectionPool {
     static let shared = MCPConnectionPool()
 
     private var clients: [String: MCPClient] = [:]
-    private let lock = NSLock()
 
     private init() {}
 
     /// Get or create client for server config
     func getClient(for config: MCPServerConfig) throws -> MCPClient {
-        lock.lock()
-        defer { lock.unlock() }
-
         if let existing = clients[config.id] {
             return existing
         }
@@ -415,19 +427,14 @@ final class MCPConnectionPool {
 
     /// Remove client from pool
     func removeClient(for serverId: String) async {
-        lock.lock()
         let client = clients.removeValue(forKey: serverId)
-        lock.unlock()
-
         await client?.disconnect()
     }
 
     /// Disconnect all clients
     func disconnectAll() async {
-        lock.lock()
         let allClients = Array(clients.values)
         clients.removeAll()
-        lock.unlock()
 
         await withTaskGroup(of: Void.self) { group in
             for client in allClients {

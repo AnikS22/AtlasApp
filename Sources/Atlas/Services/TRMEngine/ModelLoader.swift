@@ -9,8 +9,30 @@
 //
 
 import Foundation
-import CoreML
+@preconcurrency import CoreML
 import os.log
+
+/// Model cache actor for thread-safe access
+@available(iOS 17.0, *)
+private actor ModelCache {
+    private var models: [ModelLoader.ModelType: MLModel] = [:]
+
+    func get(_ type: ModelLoader.ModelType) -> MLModel? {
+        return models[type]
+    }
+
+    func set(_ model: MLModel, for type: ModelLoader.ModelType) {
+        models[type] = model
+    }
+
+    func remove(_ type: ModelLoader.ModelType) {
+        models.removeValue(forKey: type)
+    }
+
+    func removeAll() {
+        models.removeAll()
+    }
+}
 
 /// Manages loading and caching of Core ML models
 @available(iOS 17.0, *)
@@ -19,9 +41,8 @@ public final class ModelLoader {
     private let logger = Logger(subsystem: "io.atlas.trm", category: "ModelLoader")
     private let config: TRMInferenceEngine.TRMConfiguration
 
-    // Model cache
-    private var loadedModels: [ModelType: MLModel] = [:]
-    private let cacheLock = NSLock()
+    // Model cache using Actor for thread safety
+    private let modelCache = ModelCache()
 
     // MARK: - Model Types
 
@@ -55,13 +76,10 @@ public final class ModelLoader {
     /// Load a specific model type with caching
     public func loadModel(_ type: ModelType) async throws -> MLModel {
         // Check cache first
-        cacheLock.lock()
-        if let cached = loadedModels[type] {
-            cacheLock.unlock()
+        if let cached = await modelCache.get(type) {
             logger.info("Using cached \(type.rawValue) model")
             return cached
         }
-        cacheLock.unlock()
 
         // Load model from bundle
         logger.info("Loading \(type.rawValue) model from bundle...")
@@ -73,9 +91,7 @@ public final class ModelLoader {
         logger.info("\(type.rawValue) model loaded in \(String(format: "%.2f", loadTime * 1000))ms")
 
         // Cache the loaded model
-        cacheLock.lock()
-        loadedModels[type] = model
-        cacheLock.unlock()
+        await modelCache.set(model, for: type)
 
         return model
     }
@@ -160,30 +176,20 @@ public final class ModelLoader {
     // MARK: - Model Management
 
     /// Unload a specific model from cache
-    public func unloadModel(_ type: ModelType) {
-        cacheLock.lock()
-        defer { cacheLock.unlock() }
-
-        if loadedModels.removeValue(forKey: type) != nil {
-            logger.info("Unloaded \(type.rawValue) model from cache")
-        }
+    public func unloadModel(_ type: ModelType) async {
+        await modelCache.remove(type)
+        logger.info("Unloaded \(type.rawValue) model from cache")
     }
 
     /// Unload all cached models
-    public func unloadAllModels() {
-        cacheLock.lock()
-        defer { cacheLock.unlock() }
-
-        let count = loadedModels.count
-        loadedModels.removeAll()
-        logger.info("Unloaded \(count) models from cache")
+    public func unloadAllModels() async {
+        await modelCache.removeAll()
+        logger.info("Unloaded all models from cache")
     }
 
     /// Check if a model is currently loaded
-    public func isModelLoaded(_ type: ModelType) -> Bool {
-        cacheLock.lock()
-        defer { cacheLock.unlock() }
-        return loadedModels[type] != nil
+    public func isModelLoaded(_ type: ModelType) async -> Bool {
+        return await modelCache.get(type) != nil
     }
 
     /// Get model metadata
@@ -223,7 +229,7 @@ public final class ModelLoader {
 
         if !dummyInputs.isEmpty {
             let provider = try MLDictionaryFeatureProvider(dictionary: dummyInputs)
-            _ = try model.prediction(from: provider)
+            _ = try await model.prediction(from: provider)
         }
 
         // Get memory after initialization

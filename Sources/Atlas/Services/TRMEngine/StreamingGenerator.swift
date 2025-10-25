@@ -73,7 +73,7 @@ public final class StreamingGenerator {
         self.bufferSize = config.bufferSize
         self.chunkInterval = config.chunkInterval
 
-        logger.info("StreamingGenerator initialized with buffer size: \(bufferSize)")
+        logger.info("StreamingGenerator initialized with buffer size: \(self.bufferSize)")
     }
 
     // MARK: - Streaming API

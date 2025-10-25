@@ -121,13 +121,23 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
                 }
+                #else
+                ToolbarItem(placement: .automatic) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+                #endif
             }
         }
     }
@@ -195,7 +205,9 @@ struct PrivacyDetailsView: View {
             .padding()
         }
         .navigationTitle("Privacy Details")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 
