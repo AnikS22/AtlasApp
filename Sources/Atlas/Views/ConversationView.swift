@@ -19,9 +19,6 @@ struct ConversationView: View {
     @State private var messageText = ""
     @State private var isShowingVoiceInput = false
     @State private var scrollProxy: ScrollViewProxy?
-    
-    // ✅ REAL AI INTEGRATION
-    @StateObject private var viewModel = ChatViewModel()
 
     init(conversation: ConversationEntity) {
         self.conversation = conversation
@@ -149,25 +146,20 @@ struct ConversationView: View {
     private func sendMessage() {
         guard !messageText.isEmpty else { return }
 
-        // Create user message
-        let userText = messageText
-        _ = createMessage(content: userText, isFromUser: true)
+        let userMessage = createMessage(content: messageText, isFromUser: true)
         messageText = ""
 
-        // ✅ REAL AI PROCESSING
-        Task {
+        // Simulate AI response (in production, this would call the Rust backend)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             appState.isProcessing = true
-            
-            // Generate AI response using real TRM engine
-            if let response = await viewModel.sendMessage(userText, conversationId: conversation.id) {
-                // Create AI message
-                _ = createMessage(content: response, isFromUser: false)
-            } else if let error = viewModel.errorMessage {
-                // Show error as system message
-                _ = createMessage(content: "Error: \(error)", isFromUser: false)
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                let aiResponse = createMessage(
+                    content: "This is a simulated AI response. The actual implementation will integrate with the Rust backend for real AI processing.",
+                    isFromUser: false
+                )
+                appState.isProcessing = false
             }
-            
-            appState.isProcessing = false
         }
     }
 
