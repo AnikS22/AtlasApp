@@ -284,8 +284,8 @@ func exampleConnectionPooling() async throws {
         credentialType: .oauth
     )
 
-    let client1 = try pool.getClient(for: gmailConfig)
-    let client2 = try pool.getClient(for: gmailConfig) // Same instance
+    let client1 = try await pool.getClient(for: gmailConfig)
+    let client2 = try await pool.getClient(for: gmailConfig) // Same instance
 
     print("Clients are same instance: \(client1 === client2)")
 

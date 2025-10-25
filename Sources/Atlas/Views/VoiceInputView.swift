@@ -216,6 +216,7 @@ class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     }
 
     func startRecording() {
+        #if os(iOS)
         let documentPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let audioFilename = documentPath.appendingPathComponent("recording_\(Date().timeIntervalSince1970).m4a")
 
@@ -239,6 +240,9 @@ class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         } catch {
             print("Failed to start recording: \(error.localizedDescription)")
         }
+        #else
+        print("Voice recording not available on macOS")
+        #endif
     }
 
     func stopRecording() -> URL? {
@@ -253,11 +257,13 @@ class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         let url = recorder.url
         recorder.stop()
 
+        #if os(iOS)
         do {
             try audioSession.setActive(false)
         } catch {
             print("Failed to deactivate audio session: \(error.localizedDescription)")
         }
+        #endif
 
         return url
     }
