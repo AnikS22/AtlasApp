@@ -11,9 +11,22 @@ import CoreML
 
 /// Mock TRM engine that simulates AI responses without requiring model files
 @available(iOS 17.0, *)
-public final class MockTRMEngine: InferenceEngineProtocol {
+public final class MockTRMEngine: InferenceEngineProtocol, @unchecked Sendable {
     
-    private var isGenerating = false
+    private let isGeneratingLock = NSLock()
+    private var _isGenerating = false
+    private var isGenerating: Bool {
+        get {
+            isGeneratingLock.lock()
+            defer { isGeneratingLock.unlock() }
+            return _isGenerating
+        }
+        set {
+            isGeneratingLock.lock()
+            defer { isGeneratingLock.unlock() }
+            _isGenerating = newValue
+        }
+    }
     private let responseDelay: TimeInterval
     
     public init(responseDelay: TimeInterval = 0.5) {

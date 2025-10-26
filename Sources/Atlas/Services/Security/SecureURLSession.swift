@@ -29,11 +29,12 @@ extension SecureURLSession: URLSessionDelegate {
     ) {
         // Certificate pinning validation
         guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              let serverTrust = challenge.protectionSpace.serverTrust,
-              let host = challenge.protectionSpace.host else {
+              let serverTrust = challenge.protectionSpace.serverTrust else {
             completionHandler(.cancelAuthenticationChallenge, nil)
             return
         }
+
+        let host = challenge.protectionSpace.host
 
         // Validate certificate for known hosts
         let policy = MCPSecurityManager.shared.getPolicy(for: host)

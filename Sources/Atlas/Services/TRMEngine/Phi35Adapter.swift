@@ -9,10 +9,37 @@ import Foundation
 import CoreML
 
 @available(iOS 17.0, *)
-public final class Phi35Adapter: InferenceEngineProtocol {
+public final class Phi35Adapter: InferenceEngineProtocol, @unchecked Sendable {
     
-    private var model: MLModel?
-    private var isGenerating = false
+    private let modelLock = NSLock()
+    private var _model: MLModel?
+    private var model: MLModel? {
+        get {
+            modelLock.lock()
+            defer { modelLock.unlock() }
+            return _model
+        }
+        set {
+            modelLock.lock()
+            defer { modelLock.unlock() }
+            _model = newValue
+        }
+    }
+    
+    private let isGeneratingLock = NSLock()
+    private var _isGenerating = false
+    private var isGenerating: Bool {
+        get {
+            isGeneratingLock.lock()
+            defer { isGeneratingLock.unlock() }
+            return _isGenerating
+        }
+        set {
+            isGeneratingLock.lock()
+            defer { isGeneratingLock.unlock() }
+            _isGenerating = newValue
+        }
+    }
     
     public init() throws {
         try loadModel()

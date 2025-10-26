@@ -195,33 +195,37 @@ public final class SpeechRecognitionService: NSObject, SpeechRecognitionProtocol
         isPaused = false
     }
 
-    public func stopRecognition() {
-        guard isRecognizing else { return }
+    nonisolated public func stopRecognition() {
+        Task { @MainActor in
+            guard isRecognizing else { return }
 
-        // Stop audio engine
-        if audioEngine.isRunning {
-            audioEngine.stop()
-            audioEngine.inputNode.removeTap(onBus: 0)
+            // Stop audio engine
+            if audioEngine.isRunning {
+                audioEngine.stop()
+                audioEngine.inputNode.removeTap(onBus: 0)
+            }
+
+            // Cancel recognition
+            recognitionRequest?.endAudio()
+            recognitionTask?.cancel()
+
+            recognitionRequest = nil
+            recognitionTask = nil
+
+            // Stop voice activity detection
+            silenceTimer?.invalidate()
+            silenceTimer = nil
+            audioLevelCancellable?.cancel()
+            audioLevelCancellable = nil
+
+            // Deactivate audio session
+            #if os(iOS)
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            #endif
+
+            isRecognizing = false
+            isPaused = false
         }
-
-        // Cancel recognition
-        recognitionRequest?.endAudio()
-        recognitionTask?.cancel()
-
-        recognitionRequest = nil
-        recognitionTask = nil
-
-        // Stop voice activity detection
-        silenceTimer?.invalidate()
-        silenceTimer = nil
-        audioLevelCancellable?.cancel()
-        audioLevelCancellable = nil
-
-        // Deactivate audio session
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-
-        isRecognizing = false
-        isPaused = false
     }
 
     public func pauseRecognition() {
@@ -257,6 +261,7 @@ public final class SpeechRecognitionService: NSObject, SpeechRecognitionProtocol
     }
 
     private func configureAudioSession() throws {
+        #if os(iOS)
         let audioSession = AVAudioSession.sharedInstance()
 
         do {
@@ -266,6 +271,7 @@ public final class SpeechRecognitionService: NSObject, SpeechRecognitionProtocol
         } catch {
             throw SpeechRecognitionError.audioSessionConfigurationFailed
         }
+        #endif
     }
 
     private func startRecognitionTask() async throws {
@@ -508,6 +514,7 @@ extension SpeechRecognitionService {
 
 // MARK: - Audio Session Interruption Handling
 
+#if os(iOS)
 extension SpeechRecognitionService {
     public func handleAudioSessionInterruption(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
@@ -560,3 +567,4 @@ extension SpeechRecognitionService {
         }
     }
 }
+#endif

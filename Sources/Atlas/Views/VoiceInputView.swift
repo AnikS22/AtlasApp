@@ -20,6 +20,12 @@ struct VoiceInputView: View {
     @State private var recordingDuration: TimeInterval = 0
     @State private var timer: Timer?
 
+    #if os(iOS)
+    private var toolbarPlacement: ToolbarItemPlacement { .navigationBarTrailing }
+    #else
+    private var toolbarPlacement: ToolbarItemPlacement { .automatic }
+    #endif
+
     var body: some View {
         NavigationView {
             VStack(spacing: 30) {
@@ -86,9 +92,11 @@ struct VoiceInputView: View {
             }
             .padding()
             .navigationTitle("Voice Input")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: toolbarPlacement) {
                     Button("Done") {
                         dismiss()
                     }
@@ -186,10 +194,13 @@ class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     @Published var currentAmplitude: CGFloat = 0.0
 
     private var audioRecorder: AVAudioRecorder?
+    #if os(iOS)
     private var audioSession: AVAudioSession = .sharedInstance()
+    #endif
     private var amplitudeTimer: Timer?
 
     func requestPermission() {
+        #if os(iOS)
         audioSession.requestRecordPermission { allowed in
             if allowed {
                 print("Microphone permission granted")
@@ -197,6 +208,9 @@ class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
                 print("Microphone permission denied")
             }
         }
+        #elseif os(macOS)
+        print("macOS microphone permission - handled via system preferences")
+        #endif
     }
 
     func startRecording() {
@@ -211,8 +225,10 @@ class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         ]
 
         do {
+            #if os(iOS)
             try audioSession.setCategory(.record, mode: .default)
             try audioSession.setActive(true)
+            #endif
 
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
             audioRecorder?.delegate = self
@@ -237,11 +253,13 @@ class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         let url = recorder.url
         recorder.stop()
 
+        #if os(iOS)
         do {
             try audioSession.setActive(false)
         } catch {
             print("Failed to deactivate audio session: \(error.localizedDescription)")
         }
+        #endif
 
         return url
     }

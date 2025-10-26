@@ -18,7 +18,7 @@ public enum TextToSpeechError: LocalizedError {
     case voiceUnavailable
     case cancelled
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .synthesisFailure:
             return "Failed to synthesize speech."
@@ -141,7 +141,10 @@ public final class TextToSpeechService: NSObject, TextToSpeechProtocol {
     }
 
     deinit {
-        stop()
+        // Stop synthesis if active
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+        }
     }
 
     // MARK: - Speech Synthesis
@@ -329,6 +332,7 @@ public final class TextToSpeechService: NSObject, TextToSpeechProtocol {
     // MARK: - Private Methods
 
     private func configureAudioSession() throws {
+        #if os(iOS)
         let audioSession = AVAudioSession.sharedInstance()
 
         do {
@@ -338,6 +342,7 @@ public final class TextToSpeechService: NSObject, TextToSpeechProtocol {
         } catch {
             throw TextToSpeechError.audioSessionFailure
         }
+        #endif
     }
 
     private func createUtterance(from text: String, configuration: SpeechConfiguration) -> AVSpeechUtterance {
@@ -427,7 +432,9 @@ extension TextToSpeechService: AVSpeechSynthesizerDelegate {
         speakingContinuation = nil
 
         // Deactivate audio session
+        #if os(iOS)
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        #endif
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
@@ -499,6 +506,7 @@ extension TextToSpeechService {
 
 extension TextToSpeechService {
     public func handleAudioSessionInterruption(_ notification: Notification) {
+        #if os(iOS)
         guard let userInfo = notification.userInfo,
               let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
@@ -524,9 +532,11 @@ extension TextToSpeechService {
         @unknown default:
             break
         }
+        #endif
     }
 
     public func handleAudioSessionRouteChange(_ notification: Notification) {
+        #if os(iOS)
         guard let userInfo = notification.userInfo,
               let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
@@ -549,5 +559,6 @@ extension TextToSpeechService {
         default:
             break
         }
+        #endif
     }
 }

@@ -20,6 +20,12 @@ struct ConversationView: View {
     @State private var isShowingVoiceInput = false
     @State private var scrollProxy: ScrollViewProxy?
 
+    #if os(iOS)
+    private var toolbarPlacement: ToolbarItemPlacement { .navigationBarTrailing }
+    #else
+    private var toolbarPlacement: ToolbarItemPlacement { .automatic }
+    #endif
+
     init(conversation: ConversationEntity) {
         self.conversation = conversation
 
@@ -37,7 +43,7 @@ struct ConversationView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 16) {
-                        ForEach(messages) { message in
+                        ForEach(conversation.messages) { message in
                             MessageBubble(message: message)
                                 .id(message.id)
                         }
@@ -48,7 +54,7 @@ struct ConversationView: View {
                     scrollProxy = proxy
                     scrollToBottom()
                 }
-                .onChange(of: messages.count) { _ in
+                .onChange(of: conversation.messages.count) { _ in
                     scrollToBottom()
                 }
             }
@@ -59,9 +65,11 @@ struct ConversationView: View {
             messageInputView
         }
         .navigationTitle(conversation.title ?? "Conversation")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: toolbarPlacement) {
                 Menu {
                     Button(action: renameConversation) {
                         Label("Rename", systemImage: "pencil")
@@ -110,7 +118,11 @@ struct ConversationView: View {
             .disabled(messageText.isEmpty || appState.isProcessing)
         }
         .padding()
+        #if os(iOS)
         .background(Color(UIColor.systemBackground))
+        #else
+        .background(Color(NSColor.windowBackgroundColor))
+        #endif
     }
 
     // MARK: - Message Bubble
@@ -126,7 +138,11 @@ struct ConversationView: View {
                 VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
                     Text(message.content ?? "")
                         .padding(12)
+                        #if os(iOS)
                         .background(message.isFromUser ? Color.accentColor : Color(UIColor.secondarySystemBackground))
+                        #else
+                        .background(message.isFromUser ? Color.accentColor : Color(NSColor.controlBackgroundColor))
+                        #endif
                         .foregroundColor(message.isFromUser ? .white : .primary)
                         .cornerRadius(16)
 

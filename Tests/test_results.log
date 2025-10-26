@@ -1,0 +1,83 @@
+========================================
+Atlas App Comprehensive Test Suite
+========================================
+
+1. Testing Build Configuration
+--------------------------------
+[0;32m✓[0m Package.swift exists
+[0;32m✓[0m Llama 3.2 1B model directory exists
+[0;32m✓[0m Llama model file exists
+[0;32m✓[0m Llama model weights exist (2.3G)
+
+2. Testing Source Code Structure
+--------------------------------
+[0;32m✓[0m TRMInferenceEngine.swift exists
+[0;32m✓[0m ModelLoader.swift exists
+[0;32m✓[0m Llama32Adapter.swift exists
+[0;32m✓[0m MCPClient.swift exists
+[0;32m✓[0m AIService.swift exists
+[0;32m✓[0m SpeechRecognitionService.swift exists
+[0;32m✓[0m TextToSpeechService.swift exists
+[0;32m✓[0m OAuthManager.swift exists
+
+3. Testing Swift Package Dependencies
+--------------------------------
+[0;32m✓[0m Swift package resolution
+[0;32m✓[0m Alamofire dependency
+[0;32m✓[0m KeychainAccess dependency
+[0;32m✓[0m SQLite dependency
+[0;32m✓[0m SwiftyJSON dependency
+
+4. Testing Build Process
+--------------------------------
+Building project (this may take a moment)...
+[0;31m✗[0m Project builds successfully
+Build errors:
+/Users/aniksahai/Desktop/claude-flow/AtlasApp/Sources/Atlas/Views/VoiceInputView.swift:189:31: error: 'AVAudioSession' is unavailable in macOS
+    |                               `- error: 'AVAudioSession' is unavailable in macOS
+/Users/aniksahai/Desktop/claude-flow/AtlasApp/Sources/Atlas/Views/VoiceInputView.swift:189:49: error: 'sharedInstance()' is unavailable in macOS
+    |                                                 `- error: 'sharedInstance()' is unavailable in macOS
+/Users/aniksahai/Desktop/claude-flow/AtlasApp/Sources/Atlas/Views/VoiceInputView.swift:89:14: error: 'navigationBarTitleDisplayMode' is unavailable in macOS
+
+5. Testing Model Integration
+--------------------------------
+[0;32m✓[0m Llama 3.2 adapter implementation
+[0;32m✓[0m Llama model references in code
+
+6. Testing MCP Integration
+--------------------------------
+[0;32m✓[0m MCP client protocol implementation
+[0;32m✓[0m MCP transport implementations
+
+7. Testing Voice Services
+--------------------------------
+[0;32m✓[0m Speech recognition implementation
+[0;32m✓[0m Text-to-speech implementation
+
+8. Testing OAuth & Integration Services
+--------------------------------
+[0;32m✓[0m OAuth manager implementation
+[0;32m✓[0m KeychainManager.swift
+[0;32m✓[0m EncryptionManager.swift
+[0;32m✓[0m DatabaseManager.swift
+
+9. Testing Unit Tests
+--------------------------------
+[0;32m✓[0m Tests directory exists
+[0;31m✗[0m Unit test files exist
+
+10. Testing Documentation
+--------------------------------
+[0;32m✓[0m README.md exists
+[0;32m✓[0m PHI35_QUICK_START.md exists
+[0;32m✓[0m TRM_MODEL_SETUP.md exists
+
+========================================
+Test Summary
+========================================
+Total Tests:  33
+[0;32mPassed:[0m       31
+[0;31mFailed:[0m       2
+
+Pass Rate:    93%
+[1;33mSome tests failed. Please review the failures above.[0m

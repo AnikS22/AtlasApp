@@ -190,7 +190,7 @@ final class MemoryService: ObservableObject {
 
         // Get relevant long-term memories if space allows
         if recentContext.tokenCount < limit {
-            let remainingTokens = limit - recentContext.tokenCount
+            let _ = limit - recentContext.tokenCount
 
             if let lastQuery = recentContext.interactions.last?.query {
                 let memories = try await retrieve(
@@ -371,7 +371,7 @@ final class MemoryService: ObservableObject {
     }
 
     /// Get current memory statistics
-    func getStatistics() -> MemoryStatistics {
+    func getStatistics() -> MemoryServiceStatistics {
         return memoryStats
     }
 
@@ -465,7 +465,7 @@ final class MemoryService: ObservableObject {
             to: Date()
         ) ?? Date()
 
-        try await vectorStore.prune(
+        let _ = try await vectorStore.prune(
             olderThan: cutoff,
             minImportance: .low,
             category: .summary

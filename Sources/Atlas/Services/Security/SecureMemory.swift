@@ -1,6 +1,11 @@
 // File: AtlasApp/Services/Security/SecureMemory.swift
 
 import Foundation
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 /// Utilities for secure memory handling and scrubbing
 final class SecureMemory {

@@ -2,6 +2,7 @@
 
 import Foundation
 import os.log
+import OSLog
 
 final class SecurityAuditLogger {
     static let shared = SecurityAuditLogger()

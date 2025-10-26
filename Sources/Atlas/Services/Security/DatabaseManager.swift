@@ -20,7 +20,7 @@ final class DatabaseManager {
 
     func initialize() throws {
         let fileURL = try FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, create: true)
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appendingPathComponent("atlas.db")
 
         // Get master key from Keychain (biometric protected)

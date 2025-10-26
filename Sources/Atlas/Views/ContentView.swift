@@ -6,20 +6,22 @@
 //
 
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var appState: AppState
+    @StateObject private var conversationStore = ConversationStore()
 
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \ConversationEntity.updatedAt, ascending: false)],
-        animation: .default)
-    private var conversations: FetchedResults<ConversationEntity>
-
-    @State private var selectedConversation: ConversationEntity?
+    @State private var selectedConversation: Conversation?
     @State private var showingNewConversation = false
     @State private var searchText = ""
+
+    #if os(iOS)
+    private var toolbarLeadingPlacement: ToolbarItemPlacement { .navigationBarLeading }
+    private var toolbarTrailingPlacement: ToolbarItemPlacement { .navigationBarTrailing }
+    #else
+    private var toolbarLeadingPlacement: ToolbarItemPlacement { .automatic }
+    private var toolbarTrailingPlacement: ToolbarItemPlacement { .automatic }
+    #endif
 
     var body: some View {
         NavigationView {
@@ -27,8 +29,8 @@ struct ContentView: View {
             conversationList
 
             // Main Chat View
-            if let conversation = selectedConversation {
-                ConversationView(conversation: conversation)
+            if let index = conversationStore.conversations.firstIndex(where: { $0.id == selectedConversation?.id }) {
+                ConversationView(conversation: $conversationStore.conversations[index])
             } else {
                 emptyStateView
             }
@@ -39,7 +41,7 @@ struct ContentView: View {
     // MARK: - Conversation List
     private var conversationList: some View {
         List {
-            ForEach(filteredConversations) { conversation in
+            ForEach(conversationStore.conversations) { conversation in
                 ConversationRow(conversation: conversation)
                     .onTapGesture {
                         selectedConversation = conversation
@@ -53,17 +55,16 @@ struct ContentView: View {
                         }
                     }
             }
-            .onDelete(perform: deleteConversations)
         }
         .navigationTitle("Atlas")
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: toolbarLeadingPlacement) {
                 Button(action: { appState.isShowingSettings.toggle() }) {
                     Image(systemName: "gear")
                 }
             }
 
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: toolbarTrailingPlacement) {
                 Button(action: createNewConversation) {
                     Image(systemName: "square.and.pencil")
                 }
@@ -103,66 +104,38 @@ struct ContentView: View {
     }
 
     // MARK: - Filtered Conversations
-    private var filteredConversations: [ConversationEntity] {
+    private var filteredConversations: [Conversation] {
         if searchText.isEmpty {
-            return Array(conversations)
+            return conversationStore.conversations
         } else {
-            return conversations.filter { conversation in
-                conversation.title?.localizedCaseInsensitiveContains(searchText) ?? false
+            return conversationStore.conversations.filter { conversation in
+                conversation.title.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
 
     // MARK: - Actions
     private func createNewConversation() {
-        let newConversation = ConversationEntity(context: viewContext)
-        newConversation.id = UUID()
-        newConversation.title = "New Conversation"
-        newConversation.createdAt = Date()
-        newConversation.updatedAt = Date()
-
-        do {
-            try viewContext.save()
-            selectedConversation = newConversation
-            appState.currentConversationId = newConversation.id
-        } catch {
-            print("Error creating conversation: \(error.localizedDescription)")
-        }
+        let newConversation = conversationStore.createConversation()
+        selectedConversation = newConversation
+        appState.currentConversationId = newConversation.id
     }
 
-    private func deleteConversation(_ conversation: ConversationEntity) {
-        viewContext.delete(conversation)
-
-        do {
-            try viewContext.save()
-            if selectedConversation?.id == conversation.id {
-                selectedConversation = conversations.first
-            }
-        } catch {
-            print("Error deleting conversation: \(error.localizedDescription)")
-        }
-    }
-
-    private func deleteConversations(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { conversations[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                print("Error deleting conversations: \(error.localizedDescription)")
-            }
+    private func deleteConversation(_ conversation: Conversation) {
+        conversationStore.deleteConversation(conversation)
+        if selectedConversation?.id == conversation.id {
+            selectedConversation = conversationStore.conversations.first
         }
     }
 }
 
 // MARK: - Conversation Row
 struct ConversationRow: View {
-    let conversation: ConversationEntity
+    let conversation: Conversation
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(conversation.title ?? "Untitled")
+            Text(conversation.title)
                 .font(.headline)
 
             if let lastMessage = conversation.lastMessagePreview {
@@ -172,7 +145,7 @@ struct ConversationRow: View {
                     .lineLimit(2)
             }
 
-            Text(conversation.updatedAt?.formatted(date: .abbreviated, time: .shortened) ?? "")
+            Text(conversation.updatedAt.formatted(date: .abbreviated, time: .shortened))
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
@@ -183,7 +156,6 @@ struct ConversationRow: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
             .environmentObject(AppState())
     }
 }

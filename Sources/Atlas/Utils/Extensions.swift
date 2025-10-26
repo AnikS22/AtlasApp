@@ -103,7 +103,11 @@ extension Color {
 
     /// Returns a hex string representation
     func toHex() -> String? {
+        #if os(iOS)
         guard let components = UIColor(self).cgColor.components else { return nil }
+        #elseif os(macOS)
+        guard let components = NSColor(self).cgColor.components else { return nil }
+        #endif
 
         let r = Float(components[0])
         let g = Float(components[1])

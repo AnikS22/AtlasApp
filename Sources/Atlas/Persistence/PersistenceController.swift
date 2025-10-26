@@ -55,11 +55,13 @@ struct PersistenceController {
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         } else {
-            // Enable encryption for the persistent store
+            #if os(iOS)
+            // Enable encryption for the persistent store (iOS only)
             container.persistentStoreDescriptions.first?.setOption(
                 FileProtectionType.complete as NSObject,
                 forKey: NSPersistentStoreFileProtectionKey
             )
+            #endif
         }
 
         container.loadPersistentStores { storeDescription, error in

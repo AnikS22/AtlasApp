@@ -133,6 +133,14 @@ iOSInjectionProject/
 .build/
 *.xcarchive
 
+# ML Models (too large for GitHub - users download separately)
+Models/**/*.mlmodel
+Models/**/*.mlpackage
+Models/**/*.mlmodelc
+Models/**/weight.bin
+Models/**/weights/
+ModelDownloads/
+
 # Temporary files
 *.swp
 *~.nib

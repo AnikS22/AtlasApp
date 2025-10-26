@@ -15,15 +15,15 @@ import Combine
 
 /// Main inference engine for TRM model with recursive reasoning
 @available(iOS 17.0, *)
-public final class TRMInferenceEngine: InferenceEngineProtocol {
+public final class TRMInferenceEngine: InferenceEngineProtocol, @unchecked Sendable {
 
     // MARK: - Properties
 
-    private let modelLoader: ModelLoader
-    private let tokenProcessor: TokenProcessor
-    private let memoryManager: TRMMemoryManager
-    private let performanceMonitor: PerformanceMonitor
-    private let config: TRMConfiguration
+    private nonisolated(unsafe) let modelLoader: ModelLoader
+    private nonisolated(unsafe) let tokenProcessor: TokenProcessor
+    private nonisolated(unsafe) let memoryManager: TRMMemoryManager
+    private nonisolated(unsafe) let performanceMonitor: PerformanceMonitor
+    private nonisolated(unsafe) let config: TRMConfiguration
 
     private var thinkModel: MLModel?
     private var actModel: MLModel?
